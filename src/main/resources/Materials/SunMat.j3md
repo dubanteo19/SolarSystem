@@ -1,0 +1,25 @@
+Material Star Material : Materials/SunMat.j3md {
+
+MaterialParameters {
+
+Shininess : 5.0
+
+ColorRamp : Textures/Stars/ClassM.png
+
+NormalMap : Textures/Stars/ClassM_normal.png
+
+HighQuality : true
+
+Ambient : 1.0 0.2 0.2 1.0
+
+Diffuse : 1.0 0.2 0.2 1.0
+
+GlowColor : 1.0 0.0 0.0 0.0
+
+UseAlpha : true
+
+UseMaterialColors : true
+
+}
+
+}
