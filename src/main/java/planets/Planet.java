@@ -35,6 +35,45 @@ public class Planet extends CelestialBody {
         this.attachChild(satellite.geometry);
     }
 
+    //Tao cac ve tinh cua hanh tinh sao moc
+    public void createJupiterSatellite(AssetManager assetManager) {
+        // Io
+        Satellite io = new Satellite("Io", 0.286F, 1.097F, 0.065F, 66F);
+        io.applyMaterial(assetManager, "Textures/Planets/Satellite/Jupiter/io_texture.png");
+        this.addSatellite(io);
+
+        // Europa
+        Satellite europa = new Satellite("Europa", 0.245F, 1.745F, 0.13F, 105.02F);
+        europa.applyMaterial(assetManager, "Textures/Planets/Satellite/Jupiter/europa_texture.jpeg");
+        this.addSatellite(europa);
+
+        // Ganymede
+        Satellite ganymede = new Satellite("Ganymede", 0.413F, 2.784F, 0.26F, 167.46F);
+        ganymede.applyMaterial(assetManager, "Textures/Planets/Satellite/Jupiter/ganymede_texture.jpeg");
+        this.addSatellite(ganymede);
+
+        // Callisto
+        Satellite callisto = new Satellite("Callisto", 0.378F, 4.899F, 0.611F, 294.45F);
+        callisto.applyMaterial(assetManager, "Textures/Planets/Satellite/Jupiter/callisto_texture.jpeg");
+        this.addSatellite(callisto);
+    }
+
+    //Tao cac ve tinh cua hanh tinh sao Tho
+    public void createSaturnSatellite(Planet saturn, AssetManager assetManager) {
+        Satellite enceladus = new Satellite("Enceladus",
+                0.05f,
+                0.238f,
+                1.37f,
+                37.33f);
+        enceladus.applyMaterial(assetManager, "Textures/Planets/Satellite/Saturn/enceladus_texture.jpeg");
+        saturn.addSatellite(enceladus);
+        Satellite mimas = new Satellite("Mimas", 0.04f, 0.185f, 0.94f, 29.13f);
+        mimas.applyMaterial(assetManager, "Textures/Planets/Satellite/Saturn/mimas_texture.png");
+        saturn.addSatellite(mimas);
+
+    }
+
+
     // Tạo vành đai cho hành tinh
     public Ring createPlanetRings(AssetManager assetManager, float innerOffset, float ringWidth, float orbitSpeed) {
         // Xác định bán kính trong và ngoài
