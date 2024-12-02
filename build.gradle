@@ -16,7 +16,7 @@ java {
 
 ext.jmonkeyengineVersion = '3.7.0-stable'
 
-mainClassName = 'solarsystem.SolarSystem'
+mainClassName = 'solarsystem.Run'
 if (!hasProperty('mainClass')) {
     ext.mainClass = mainClassName
 }

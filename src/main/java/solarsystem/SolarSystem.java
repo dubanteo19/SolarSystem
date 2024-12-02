@@ -10,13 +10,11 @@ import com.jme3.input.MouseInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
-import com.jme3.light.DirectionalLight;
 import com.jme3.light.PointLight;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Ray;
-import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.BloomFilter;
@@ -29,10 +27,7 @@ import com.jme3.scene.shape.Sphere;
 import com.jme3.system.AppSettings;
 import com.jme3.texture.Texture;
 import com.jme3.util.SkyFactory;
-import planets.Moon;
-import planets.Planet;
-import planets.Ring;
-import planets.Satellite;
+import planets.*;
 
 
 public class SolarSystem extends SimpleApplication {
@@ -42,8 +37,10 @@ public class SolarSystem extends SimpleApplication {
     private Planet earth, mercury, venus, mars, jupiter, saturn, uranus, neptune;
     private boolean simulationPaused = false;
     private Node dialogNode = new Node("Dialog Node");
+    private BitmapText speedText;
 
     public SolarSystem() {
+        new Thread(PlanetInfo::initData).start();
         AppSettings appSettings = new AppSettings(true);
         appSettings.setTitle("Solar System");
         appSettings.setFrameRate(60);
@@ -52,18 +49,42 @@ public class SolarSystem extends SimpleApplication {
         this.setSettings(appSettings);
     }
 
-    public static void main(String[] args) {
-        SolarSystem app = new SolarSystem();
-        app.start();
+
+
+    private void initGuide() {
+        setDisplayStatView(false);
+        BitmapFont font = assetManager.loadFont("Interface/Fonts/Default.fnt");
+
+        // Create a BitmapText with the font
+        String guide = """
+                Nhan 't' de tang toc do gia lap
+                Nhan 'y' de giam toc do gia lap
+                """;
+        BitmapText text = new BitmapText(font, false);
+        speedText = new BitmapText(font, false);
+        speedText.setText("Toc do hien tai: %f".formatted(speed));
+        speedText.setColor(ColorRGBA.Yellow);
+        // Set the text content
+        text.setText(guide); // Add your frame rate or other text here
+
+        // Set the location of the text at the top left
+        text.setLocalTranslation(10, settings.getHeight() - 10, 0);
+        speedText.setLocalTranslation(10, settings.getHeight() - 50, 0);
+
+        // Attach the text to the GUI node
+        guiNode.attachChild(text);
+        guiNode.attachChild(speedText);
     }
 
     @Override
     public void simpleInitApp() {
         // Handle light resource
         flyCam.setMoveSpeed(30);
+        cam.setLocation(new Vector3f(50f, 50f, 20f));
+        initGuide();
         initCrossHairs();
         initKey();
-        setSpeed(getSpeed() / 10);
+        setSpeed(getSpeed() / 40);
         createSun();
         makePlanets();
         rootNode.attachChild(planetsNode);
@@ -85,8 +106,8 @@ public class SolarSystem extends SimpleApplication {
 
     private void initKey() {
         inputManager.deleteMapping("SIMPLEAPP_Exit");
-        inputManager.addMapping("SpeedUp", new KeyTrigger(KeyInput.KEY_1));
-        inputManager.addMapping("SpeedDown", new KeyTrigger(KeyInput.KEY_2));
+        inputManager.addMapping("SpeedUp", new KeyTrigger(KeyInput.KEY_T));
+        inputManager.addMapping("SpeedDown", new KeyTrigger(KeyInput.KEY_Y));
         inputManager.addMapping("pick", new MouseButtonTrigger(MouseInput.BUTTON_LEFT), new KeyTrigger(KeyInput.KEY_SPACE));
         inputManager.addListener(new ActionListener() {
             @Override
@@ -107,20 +128,19 @@ public class SolarSystem extends SimpleApplication {
                 }
             }
         }, "pick");
-//        inputManager.addListener(new ActionListener() {
-//            @Override
-//            public void onAction(String s, boolean b, float v) {
-//                if (b) {
-//                    if (s.equals("SpeedUp")) {
-//                        setSpeed(getSpeed() + 0.1f);
-//                    }
-//                    if (s.equals("SpeedDown")) {
-//                        System.out.println(speed);
-//                        setSpeed(getSpeed() - 0.1f);
-//                    }
-//                }
-//            }
-//        }, "SpeedDown", "SpeedUp");
+        inputManager.addListener(new ActionListener() {
+            @Override
+            public void onAction(String s, boolean b, float v) {
+                if (b) {
+                    if (s.equals("SpeedUp")) {
+                        setSpeed(getSpeed() + 0.1f);
+                    }
+                    if (s.equals("SpeedDown")) {
+                        setSpeed(getSpeed() - 0.1f);
+                    }
+                }
+            }
+        }, "SpeedDown", "SpeedUp");
     }
 
     // Display planet information in a dialog
@@ -129,29 +149,37 @@ public class SolarSystem extends SimpleApplication {
         guiNode.attachChild(dialogNode); // Attach dialog to the GUI node
         BitmapFont font = assetManager.loadFont("Interface/Fonts/Default.fnt");
         // Background for dialog
-        Geometry bg = new Geometry("Dialog Background", new Quad(300, 200));
+        Geometry bg = new Geometry("Dialog Background", new Quad(700, 500));
         Material bgMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         bgMat.setColor("Color", new ColorRGBA(0, 0, 0, 0.7f)); // Black with 70% opacity
         bgMat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha); // Enable transparency
         bg.setMaterial(bgMat);
-        bg.setLocalTranslation(cam.getWidth() / 2 - 150, cam.getHeight() / 2 - 100, 0);
+        bg.setLocalTranslation(cam.getWidth() / 2 - 250, cam.getHeight() / 2 - 300, 0);
 
 // Border for the dialog
-        Geometry border = new Geometry("Dialog Border", new Quad(310, 210)); // Slightly larger
+        Geometry border = new Geometry("Dialog Border", new Quad(710, 510)); // Slightly larger
         Material borderMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         borderMat.setColor("Color", ColorRGBA.Gray); // Gray border color
         borderMat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha); // Enable transparency
         border.setMaterial(borderMat);
-        border.setLocalTranslation(cam.getWidth() / 2 - 155, cam.getHeight() / 2 - 105, -0.01f); // Behind the background
+        border.setLocalTranslation(cam.getWidth() / 2 - 255, cam.getHeight() / 2 - 305, -0.01f); // Behind the background
         dialogNode.attachChild(border);
         dialogNode.attachChild(bg);
         // Display planet information
-        String info = name;
+        String info = PlanetInfo.getInfo(name.toLowerCase());
+        System.out.println(info);
 
         BitmapText text = new BitmapText(font, false);
-        text.setSize(font.getCharSet().getRenderedSize());
+        text.setSize(font.getCharSet().getRenderedSize() + 5);
         text.setText(info);
-        text.setLocalTranslation(cam.getWidth() / 2 - 140, cam.getHeight() / 2 + 80, 0);
+        text.setLocalTranslation(cam.getWidth() / 2 - 200, cam.getHeight() / 2 + 150, 0);
+        BitmapText textClose = new BitmapText(font, false);
+        textClose.setSize(font.getCharSet().getRenderedSize() + 10);
+        textClose.setText("Nhan nut ESC de tat cua so");
+        textClose.setColor(ColorRGBA.Red);
+        textClose.setLocalTranslation(cam.getWidth() / 2 + 50, cam.getHeight() / 2 + 180, 0);
+
+        dialogNode.attachChild(textClose);
         dialogNode.attachChild(text);
 
         // Add a "Close" button
@@ -193,20 +221,25 @@ public class SolarSystem extends SimpleApplication {
         // Mercury
         mercury = new Planet("Mercury", 0.38f, 1.59f, 0.240f, 20.0f);
         mercury.applyMaterial(assetManager, "Textures/Planets/mercury_texture.jpg");
-
 // Venus
         venus = new Planet("Venus", 0.95f, 1.18f, 0.092f, 30.0f);
         venus.applyMaterial(assetManager, "Textures/Planets/venus_texture.jpg");
 // Mars
         mars = new Planet("Mars", 0.53f, 0.80f, 0.093f, 60.0f);
         mars.applyMaterial(assetManager, "Textures/Planets/mars_texture.jpg");
+        Satellite phobos = new Satellite("Phobos", 0.011F, 0.07F, 0.005F, 1.46F); // Tùy chỉnh kích thước, tốc độ quay, khoảng cách
+        phobos.applyMaterial(assetManager, "Textures/Planets/Satellite/Mars/phobos_texture.jpeg"); // Đường dẫn texture
+        Satellite deimos = new Satellite("Deimos", 0.006F, 0.03F, 0.002F, 3.67F); // Tùy chỉnh kích thước, tốc độ quay, khoảng cách
+        deimos.applyMaterial(assetManager, "Textures/Planets/Satellite/Mars/deimos_texture.jpeg"); // Đường dẫn texture
+        mars.addSatellite(phobos);
+        mars.addSatellite(deimos);
 
 // Jupiter
         jupiter = new Planet("Jupiter", 11.19f, 0.13f, 0.041f, 120.0f);
         jupiter.applyMaterial(assetManager, "Textures/Planets/jupiter_texture.jpg");
+        jupiter.createJupiterSatellite(assetManager);
         Ring jupiterRing = jupiter.createPlanetRings(assetManager,
                 4f, 1.6f, 0.05f);  // Cập nhật thông số cho vành đai Jupiter
-
         // Điều chỉnh góc nghiêng cho vành đai Jupiter (góc nghiêng rất nhỏ, khoảng 0.05 độ)
         jupiterRing.adjustOrientation(0.05f, 0, 0);
         // Điều chỉnh độ sáng của vành đai Jupiter
@@ -215,6 +248,7 @@ public class SolarSystem extends SimpleApplication {
 // Saturn
         saturn = new Planet("Saturn", 9.45f, 0.09f, 0.034f, 200.0f);
         saturn.applyMaterial(assetManager, "Textures/Planets/saturn_texture.jpg");
+        saturn.createSaturnSatellite(saturn, assetManager);
         // Cập nhật vành đai Saturn với thông số thực tế và góc nghiêng
         Ring saturnRing = saturn.createPlanetRings(assetManager,
                 3f, 0.74f, 0.1f);
@@ -232,6 +266,35 @@ public class SolarSystem extends SimpleApplication {
         uranusRing.adjustOrientation(98, 0, 0);
 //        uranusRing.adjustBrightness(0.1f);
         uranus.attachChild(uranusRing);
+        Satellite miranda = new Satellite("Miranda",
+                0.06f,
+                0.174f,
+                1.413f,
+                20.29f);
+        miranda.applyMaterial(assetManager, "Textures/Planets/Satellite/Uranus/miranda_diffuse.png");
+        Satellite ariel = new Satellite("Ariel",
+                0.08f,
+                0.287f,
+                2.52f,
+                30f);
+        ariel.applyMaterial(assetManager, "Textures/Planets/Satellite/Uranus/ariel_texture.jpeg");
+        Satellite oberon = new Satellite("Oberon",
+                0.12f,
+                0.391f,
+                13.46f,
+                91.56f);
+        oberon.applyMaterial(assetManager, "Textures/Planets/Satellite/Uranus/oberon_text_ture.jpeg");
+        Satellite titania = new Satellite("Titania",
+                0.14f,
+                0.292f,
+                8.71f,
+                68.44f);
+        titania.applyMaterial(assetManager, "Textures/Planets/Satellite/Uranus/titania_text_ture.jpeg");
+        uranus.addSatellite(miranda);
+        uranus.addSatellite(ariel);
+        uranus.addSatellite(oberon);
+        uranus.addSatellite(titania);
+
 // Neptune
         neptune = new Planet("Neptune", 3.88f, 0.03f, 0.016f, 400.0f);
         neptune.applyMaterial(assetManager, "Textures/Planets/neptune_texture.jpg");
@@ -289,6 +352,7 @@ public class SolarSystem extends SimpleApplication {
 
     @Override
     public void simpleUpdate(float tpf) {
+        speedText.setText("Toc do hien tai: %f".formatted(speed));
         if (simulationPaused) {
             return;
         }
