@@ -25,6 +25,7 @@ public abstract class CelestialBody extends Node {
         this.rotationSpeed = rotationSpeed;
         Sphere sphere = new Sphere(32, 32, this.radius);
         this.geometry = new Geometry(this.name, sphere);
+        this.geometry.setUserData("name", name);
         this.attachChild(geometry);
     }
 
