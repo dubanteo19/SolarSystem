@@ -31,6 +31,7 @@ import com.jme3.texture.Texture;
 import com.jme3.util.SkyFactory;
 import planets.Moon;
 import planets.Planet;
+import planets.Ring;
 import planets.Satellite;
 
 
@@ -203,19 +204,45 @@ public class SolarSystem extends SimpleApplication {
 // Jupiter
         jupiter = new Planet("Jupiter", 11.19f, 0.13f, 0.041f, 120.0f);
         jupiter.applyMaterial(assetManager, "Textures/Planets/jupiter_texture.jpg");
+        Ring jupiterRing = jupiter.createPlanetRings(assetManager,
+                4f, 1.6f, 0.05f);  // Cập nhật thông số cho vành đai Jupiter
 
+        // Điều chỉnh góc nghiêng cho vành đai Jupiter (góc nghiêng rất nhỏ, khoảng 0.05 độ)
+        jupiterRing.adjustOrientation(0.05f, 0, 0);
+        // Điều chỉnh độ sáng của vành đai Jupiter
+        jupiterRing.adjustBrightness(0.85f);
+        jupiter.attachChild(jupiterRing);
 // Saturn
         saturn = new Planet("Saturn", 9.45f, 0.09f, 0.034f, 200.0f);
         saturn.applyMaterial(assetManager, "Textures/Planets/saturn_texture.jpg");
-
+        // Cập nhật vành đai Saturn với thông số thực tế và góc nghiêng
+        Ring saturnRing = saturn.createPlanetRings(assetManager,
+                3f, 0.74f, 0.1f);
+        // Điều chỉnh góc nghiêng và góc quay của vành đai Saturn
+        // Góc nghiêng của vành đai Saturn là khoảng 26.7 độ
+        saturnRing.adjustOrientation(26.7f, 0, 0);  // Xoay theo trục X với góc 26.7 độ
+        saturn.attachChild(saturnRing);
 // Uranus
         uranus = new Planet("Uranus", 4.00f, 0.06f, 0.022f, 300.0f);
         uranus.applyMaterial(assetManager, "Textures/Planets/uranus_texture.jpg");
-
+        // Cập nhật vành đai Uranus với thông số thực tế và góc nghiêng (98 độ)
+        Ring uranusRing = uranus.createPlanetRings(assetManager,
+                2f, 0.5f, 0.1f);
+        // Điều chỉnh góc nghiêng cho vành đai Uranus (98 độ)
+        uranusRing.adjustOrientation(98, 0, 0);
+//        uranusRing.adjustBrightness(0.1f);
+        uranus.attachChild(uranusRing);
 // Neptune
         neptune = new Planet("Neptune", 3.88f, 0.03f, 0.016f, 400.0f);
         neptune.applyMaterial(assetManager, "Textures/Planets/neptune_texture.jpg");
 
+        Ring neptuneRing = neptune.createPlanetRings(assetManager,
+                5f, 0.8f, 0.02f);  // Cập nhật thông số cho vành đai Neptune, bán kính và độ sáng thấp
+        // Điều chỉnh góc nghiêng cho vành đai Neptune (khoảng 1 độ)
+        neptuneRing.adjustOrientation(1.0f, 0, 0);
+        // Điều chỉnh độ sáng của vành đai Neptune (giảm độ sáng vì vành đai Neptune khá mờ)
+        neptuneRing.adjustBrightness(0.05f);
+        neptune.attachChild(neptuneRing);
         planetsNode.attachChild(earth);
         planetsNode.attachChild(neptune);
         planetsNode.attachChild(uranus);
